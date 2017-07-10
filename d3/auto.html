@@ -1,0 +1,110 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="refresh" content="15"/>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <title>自动刷新</title>
+</head>
+
+<style>
+
+</style>
+
+<body>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+<div id="svg">
+</div>
+
+
+<script>
+    //[ { "name": "桂林" }, { "name": "广州" },{ "name": "桂林ee" }]
+    var width = 1200;
+    var height = 700;
+
+    var svg = d3.select("#svg")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height );
+
+
+        d3.json("final_result.json", function(error, dataset){
+
+        var force = d3.layout.force()
+            .nodes(dataset.nodes) //指定节点数组
+            .links(dataset.edges)
+            .size([width,height]) //指定作用域范围
+            .linkDistance([300])
+            .charge([-150]); //相互之间的作用力,显示在图像上则为点与点之间的距离
+
+        force.start();//现在确实有node，但是还没确定node用圈圈来表示
+        console.log(dataset.nodes);
+
+        var color = d3.scale.category10();
+
+        var svg_nodes = svg.selectAll("circle")
+            .data(dataset.nodes)
+            .enter()
+            .append("circle")
+            .attr("r", 20)
+            .attr("fill",function(d,i){
+                return color(i);
+            })
+            .call(force.drag);
+
+        var svg_edges = svg.selectAll("link")
+            .data(dataset.edges)
+            .enter()
+            .append("path")
+            .attr("class","link")
+            .style("stroke", "#ccc")
+            .style("fill", "none");
+
+        force.on("tick", function(){
+            svg_nodes.attr("cx",function(d){return d.x;})
+                .attr("cy", function(d){return d.y;});
+            svg_edges
+                .attr('marker-end','url(#arrowhead)')
+                .attr("d", function(d) {
+                    var x1 = d.source.x,
+                        y1 = d.source.y,
+                        x2 = d.target.x,
+                        y2 = d.target.y,
+                        dx = x2 - x1,
+                        dy = y2 - y1,
+                        dr = Math.sqrt(dx * dx + dy * dy),
+
+
+                        drx = dr,
+                        dry = dr,
+                        xRotation = 0,
+                        largeArc = 0,
+                        sweep = 1;
+
+
+                    if ( x1 === x2 && y1 === y2 ) {
+
+                        xRotation = -45;
+
+                        largeArc = 1;
+
+
+                        drx = 30;
+                        dry = 20;
+
+                        x2 = x2 + 1;
+                        y2 = y2 + 1;
+                    }
+
+                    return "M" + x1 + "," + y1 + "A" + drx + "," + dry + " " + xRotation + "," + largeArc + "," + sweep + " " + x2 + "," + y2;
+                })
+                .on ("dblclick",function(d){ alert("node was double clicked"); });
+
+        });
+
+    });
+
+
+</script>
+</body>
+</html>
