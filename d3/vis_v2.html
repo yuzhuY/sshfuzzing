@@ -17,15 +17,6 @@
         stroke: #fff;
         stroke-width: 1.5px;
     }
-    /*circle {*/
-        /*fill: #ccc;*/
-        /*stroke: #333;*/
-        /*stroke-width: 1.5px;*/
-    /*}*/
-
-    /*marker#transport {*/
-        /*fill: green;*/
-    /*}*/
 
     #transport {
         fill: green;
@@ -43,66 +34,137 @@
         stroke-dasharray: 0,2 1;
 
     }
-    /*.edges.link.transport {*/
-        /*stroke: green;*/
-    /*}*/
+
+    #header {
+        color: #333333;
+        font-family: 'Bitter', serif;
+        font-size: 20px;
+        font-weight: normal;
+        line-height: 54px;
+        margin: 0px;
+    }
+    #sourcecode{
+        color: #333333;
+        font-family: Georgia, serif;
+        font-size: 20px;
+        line-height: 28px;
+        margin-right: 20px;
+        margin-left: 15px;
+        height:600px;
+        width:400px;
+        float:left;
+        border-width:3px;
+        border-style:double;
+        border-color:#C4C4C4;
+        padding:0px;
+
+    }
+    #info{
+        color: #8d8d8d;
+        font-size: 15px;
+        line-height: 36px;
+        margin: 0 0 28px;
+    }
+
+    #chart{
+        border-width:2px;
+        border-style:dotted;
+        border-color:#E3E3E3;
+        padding:0px;
+    }
+
+
 
 </style>
 
 <body>
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 
-<div id="svg">
+<div id="author">
+    <font style="color: #8d8d8d; font-family: Georgia, serif; font-style: italic; font-size: 14px; margin-bottom: 0px">    Designed by</font>
+    <font style="color: #c73036; font-family: "Helvetica Neue" , sans-serif; font-weight: bold; text-decoration: none; text-transform: uppercase;">Yuzhu Yan</font>
+</div>
+
+<div id="header" >
+    <h1 align="center">SSH State Machine</h1>
+</div>
+
+<div id="sourcecode">
+    <b style="color:#6E6E6E;">Source Code Overview</b>
+
+    <div id="info">
+
+    </div>
+</div>
+
+<div id="chart" style="float:left;">
 
 </div>
-<div>
-    xxxx
+
+<a href="vis_v4.html" align="right">Open</a>
+
+<div id="footer" style="font-family: Georgia, serif; font-style: italic; clear:both;text-align:center;padding-top: 40px; color: #B0B0B0; align:bottom;">
+    Copyright © Yuzhu Yan TU Delft
 </div>
-<div id="info">
 
-</div>
-<div>
-    yyy
-</div>
-<!--<div id="option">-->
-    <!--<input name="updateButton"-->
-           <!--type="button"-->
-           <!--value="load new graph"--
-
-           <!--onclick="updateData2()" />-->
-<!--</div>-->
-
-
-<!--<div id="option">-->
-    <!--<input name="updateButton"-->
-           <!--type="button"-->
-           <!--value="clearsvg"-->
-           <!--onclick="updateData3()" />-->
-<!--</div>-->
 
 <script>
     //[ { "name": "桂林" }, { "name": "广州" },{ "name": "桂林ee" }]
-    var width = 1200;
-    var height = 700;
+    var width = 800;
+    var height = 600;
 
-    var svg = d3.select("#svg")
-        .append("svg")
+//    var svg = d3.select("#svg")
+//        .append("svg")
+//        .attr("width", width)
+//        .attr("height", height );
+
+
+
+
+
+
+
+
+    var svg = d3.select("#chart")
+        .append("svg:svg")
         .attr("width", width)
-        .attr("height", height );
+        .attr("height", height)
+        .attr("pointer-events", "all")
+        .append('svg:g')
+        .call(d3.behavior.zoom().on("zoom", redraw))
+        .append('svg:g');
 
-//    function updateData2() {
-//    d3.json(".././script/final_result.json", function(error, dataset){
-        d3.json("final_result.json", function(error, dataset){
 
-            //any links with duplicate source and target get an incremented 'linknum'
-            for (var i=0; i<dataset.edges.length; i++) {
-                if (i != 0 &&
-                    dataset.edges[i].source == dataset.edges[i-1].source &&
-                    dataset.edges[i].target == dataset.edges[i-1].target) {
-                    dataset.edges[i].linknum = dataset.edges[i-1].linknum + 1;
-                }
-                else {dataset.edges[i].linknum = 1;};
-            };
+
+    svg.append('svg:rect')
+        .attr('width', width)
+        .attr('height', height)
+        .attr('fill', 'white');
+
+
+
+    function redraw() {
+        console.log("ssss4");
+        console.log("here", d3.event.translate, d3.event.scale);
+        svg.attr("transform",
+            "translate(" + d3.event.translate + ")"
+            + " scale(" + d3.event.scale + ")");
+    }
+
+
+
+
+    d3.json("final_result.json", function(error, dataset){
+
+        //any links with duplicate source and target get an incremented 'linknum'
+        for (var i=0; i<dataset.edges.length; i++) {
+            if (i != 0 &&
+                dataset.edges[i].source == dataset.edges[i-1].source &&
+                dataset.edges[i].target == dataset.edges[i-1].target) {
+                dataset.edges[i].linknum = dataset.edges[i-1].linknum + 1;
+            }
+            else {dataset.edges[i].linknum = 1;};
+        };
 
         var force = d3.layout.force()
             .nodes(dataset.nodes) //指定节点数组
@@ -118,43 +180,22 @@
 
 
 
-            svg.append('defs').selectAll('marker')
-                .data(["none","transport"])
-//                .attr({'id':'arrowhead'})
-                .enter().append("marker")
-                .attr("id", function(d) { return d; })
-                .attr({
-                    'viewBox':'-0 -5 10 10',
-                    'refX':25,
-                    'refY':0,
-                    //'markerUnits':'strokeWidth',
-                    'orient':'auto',
-                    'markerWidth':10,
-                    'markerHeight':10,
-                    'xoverflow':'visible'})
-                .append('svg:path')
-                .attr('d', 'M 0,-5 L 10 ,0 L 0,5');
-//                .attr('fill', '#ccc')
-//                .attr('stroke','#ccc');
-
-//backup of original working version
-//            svg.append('defs').append('marker')
-//            //                .data(["none","transport"])
-//                .attr({'id':'arrowhead'})
-//                //                .attr("id", function(d) { return d; })
-//                .attr({
-//                    'viewBox':'-0 -5 10 10',
-//                    'refX':25,
-//                    'refY':0,
-//                    //'markerUnits':'strokeWidth',
-//                    'orient':'auto',
-//                    'markerWidth':10,
-//                    'markerHeight':10,
-//                    'xoverflow':'visible'})
-//                .append('svg:path')
-//                .attr('d', 'M 0,-5 L 10 ,0 L 0,5')
-//                .attr('fill', '#ccc')
-//                .attr('stroke','#ccc');
+        svg.append('defs').selectAll('marker')
+            .data(["none","transport"])
+            //                .attr({'id':'arrowhead'})
+            .enter().append("marker")
+            .attr("id", function(d) { return d; })
+            .attr({
+                'viewBox':'-0 -5 10 10',
+                'refX':25,
+                'refY':0,
+                //'markerUnits':'strokeWidth',
+                'orient':'auto',
+                'markerWidth':10,
+                'markerHeight':10,
+                'xoverflow':'visible'})
+            .append('svg:path')
+            .attr('d', 'M 0,-5 L 10 ,0 L 0,5');
 
 
         var svg_edges = svg.selectAll("link")
@@ -164,22 +205,20 @@
             .attr("class", function(d) { return "link "+ d.type; })
             .attr("marker-end", function(d) { return "url(#" + d.type + ")"; });
 
-//            .attr('marker-end','url(#arrowhead)');
-//            .style("stroke", "#ccc")
-//            .style("fill", "none");
 
-            var drag = force.drag()
-                .on("dragstart", dragstart);
+        var drag = force.drag()
+            .on("dragstart", dragstart);
 
         var svg_nodes = svg.selectAll("circle")
             .data(dataset.nodes)
             .enter()
             .append("circle")
-            .attr("r", 20)
+            .attr("r", 15)
             .attr("fill",function(d,i){
                 return color(i);
             })
             .call(drag);
+
 
 
         var label = svg.selectAll(".mytext")
@@ -193,48 +232,53 @@
             .style("font-size", 12);
 
 
-            var edgepaths = svg.selectAll(".edgepath")
-                .data(dataset.edges)
-                .enter()
-                .append('path')
-                .attr({
-//                    'd': function(d) {return 'M '+d.source.x+' '+d.source.y+' L '+ d.target.x +' '+d.target.y},
-                    'class':'edgepath',
-                    'fill-opacity':0,
-                    'stroke-opacity':0,
-                    'fill':'blue',
-                    'stroke':'red',
-                    'id':function(d,i) {return 'edgepath'+i}})
-                .style("pointer-events", "none");
+        var edgepaths = svg.selectAll(".edgepath")
+            .data(dataset.edges)
+            .enter()
+            .append('path')
+            .attr({
+
+                'class':'edgepath',
+                'fill-opacity':0,
+                'stroke-opacity':0,
+                'fill':'blue',
+                'stroke':'red',
+                'id':function(d,i) {return 'edgepath'+i}})
+            .style("pointer-events", "none");
 
 
-            var edgelabels = svg.selectAll(".edgelabel")
-                .data(dataset.edges)
-                .enter()
-                .append('text')
-//                .style("pointer-events", "none")
-                .attr({'class':'edgelabel',
-                    'id':function(d,i){return 'edgelabel'+i},
-                    'dx':80,
-                    'dy':0,
-                    'font-size':10,
-                    'fill':'#aaa'});
+        var edgelabels = svg.selectAll(".edgelabel")
+            .data(dataset.edges)
+            .enter()
+            .append('text')
+            //                .style("pointer-events", "none")
+            .attr({'class':'edgelabel',
+                'id':function(d,i){return 'edgelabel'+i},
+                'dx':80,
+                'dy':0,
+                'font-size':10,
+                'fill':'#aaa'});
 
 
-            edgelabels.append('textPath')
-                .attr('xlink:href',function(d,i) {return '#edgepath'+i})
-//                .style("pointer-events", "none")
-                // .text(function(d,i){return 'label '+i});
-                .text(function(d,i){return d.l_label+i})
-                .on("click", function(d) {
+        edgelabels.append('textPath')
+            .attr('xlink:href',function(d,i) {return '#edgepath'+i})
+            //                .style("pointer-events", "none")
+            // .text(function(d,i){return 'label '+i});
+            .text(function(d,i){return d.l_label})
+            .on("click", function(d) {
 //                    alert(d.l_label);
-                    d3.select("#info").text(d.l_label);
-                });
+                d3.select("#info").text(d.l_label);
+            });
 
-            function dragstart(d) {
-                d3.select(this).classed("fixed", d.fixed = true);
-            }
+        function dragstart(d) {
+            d3.event.sourceEvent.stopPropagation();
+            d3.select(this).classed("fixed", d.fixed = true);
+        }
 
+//        svg.style("opacity", 1e-6)
+//            .transition()
+//            .duration(1000)
+//            .style("opacity", 1);
 
         force.on("tick", function(){
             svg_nodes.attr("cx",function(d){return d.x;})
@@ -278,50 +322,6 @@
                 .attr("y", function (d) {return d.y; });
 
 
-//            edgepaths
-//                .attr('d', function(d) {
-//                    var dsourcex=d.source.x;
-//                    var dsourcey=d.source.y;
-//                    var dtargetx=d.target.x;
-//                    var dtargety=d.target.y-90;
-//
-////                    var path='M '+d.source.x+' '+d.source.y+' L '+ d.target.x +' '+d.target.y;
-//                    var path='M '+dsourcex+' '+dsourcey+' L '+ dtargetx +' '+dtargety;
-////                    console.log(path)
-//                    return path});
-
-
-
-//            edgepaths
-//                .attr('d', function(d) {
-//                    var x1=d.source.x;
-//                    var y1=d.source.y;
-//                    var x2=d.target.x;
-//                    var y2=d.target.y;
-//                    var xRotation = 0;
-////                    var path='M '+d.source.x+' '+d.source.y+' L '+ d.target.x +' '+d.target.y;
-//                    var path='M '+x1+' '+y1+' L '+ x2 +' '+y2;
-//
-//                    if ( x1 === x2 && y1 === y2 ) {
-//                        xRotation = -90;
-//                        y1=y1-90*d.linknum;
-//                        x1=x1-90*d.linknum;
-//                        var largeArc = 1;
-//                        var drx = 30;
-//                        var dry = 20;
-////                        var path1='M '+x1+' '+y1 + "," + largeArc +' L '+ x2 +' '+y2 + "A" + drx + "," + dry ;
-////                        var path1='M '+x1+' '+y1 + ' L '+ x2 +' '+y2 ;
-//                        var path1='M '+x1+' '+y1 + ' L '+ x2 +' '+y2;
-//                        return path1;
-////                        return path1;
-//
-//                    }else{
-//                        return path
-//                    }
-//                    });
-
-
-
             edgepaths
                 .attr('d', function(d) {
                     var x1 = d.source.x,
@@ -359,7 +359,7 @@
                         var path='M '+x1+' '+y1+' L '+ x2 +' '+y2;
                         return path
                     }
-                    });
+                });
 
 
             edgelabels.attr('transform',function(d,i){
@@ -379,23 +379,6 @@
                     return 'rotate(0)';
                 }
             });
-
-//            edgelabels.attr('transform',function(d,i){
-//                if (d.target.x<d.source.x){
-//                    bbox = this.getBBox();
-//                    rx = bbox.x+bbox.width/2;
-//                    ry = bbox.y+bbox.height/2;
-//                    return 'rotate(180 '+rx+' '+ry+')';
-////                }
-////                else if(d.source.x === d.target.x && d.source.y===d.target.y){
-////                    bbox = this.getBBox();
-////                    rx = bbox.x+bbox.width/2;
-////                    ry = bbox.y+bbox.height/2;
-////                    return 'rotate(180 '+rx+' '+ry+')';
-//                }else{
-//                    return 'rotate(0)';
-//                }
-//            });
 
 
 
