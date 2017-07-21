@@ -1,0 +1,96 @@
+{"edges":
+[
+  {
+    "l_label": "KEXINIT, SR_*, KEX30/KEXINIT",
+    "source": 0,
+    "source_code": " KEXINIT/KEXINIT: kex.c(kex_send_kexinit(line 255), kex_buf2prop(line 173), kex_choose_conf(line 469)), kexdhs.c(kexdh_server(line 47),);",
+    "target": 1,
+    "type": "transport"
+  },
+  {
+    "l_label": "KEX30/KEX31+NEWKEYS",
+    "source": 1,
+    "source_code": " kexdhs.c(kexdh_server(line 47), kex.c(kex_reset_dispatch(line220), kex_finish(line 230)), ",
+    "target": 2,
+    "type": "transport"
+  },
+  {
+    "l_label": "NEWKEYS/NO_RESP",
+    "source": 2,
+    "source_code": "kexdhs.c(kexdh_server(line 47), kex.c(kex_finish(line 230)), sshd.c(do_ssh2_kex(line 2512)), sshd.c(main(line 2152 call do_authentication2(authctxt)))",
+    "target": 3,
+    "type": "transport"
+  },
+  {
+    "l_label": "SR_AUTH/SR_ACCEPT",
+    "source": 3,
+    "source_code": "auth2.c(line 171: do_authentication2(Authctxt *authctxt) call dispatch_run() at line 178 )",
+    "target": 4,
+    "type": "auth"
+  },
+  {
+    "l_label": "UA_PK_NOK/UA_FAILURE",
+    "source": 4,
+    "source_code": " auth2.c(line 171: do_authentication2(Authctxt *authctxt) call dispatch_run() at line 178 ), sshd.c(main(){do_authentication2(authctxt)})",
+    "target": 5,
+    "type": "none"
+  },
+  {
+    "l_label": "UA_PK_OK/UA_SUCCESS",
+    "source": 4,
+    "source_code": "sshd.c(main(): authenticated, privsep_postauth(authtxt)), serverloop.c(server_loop2 calls server_init_dispatch();)",
+    "target": 6,
+    "type": "auth"
+  },
+  {
+    "l_label": "CH_OPEN/CH_OPEN_SUCCESS",
+    "source": 6,
+    "source_code": "serverloop.c(server_request_session(void), server_input_channel_open())",
+    "target": 7,
+    "type": "conn"
+  },
+  {
+    "l_label": "CH_REQUEST_PTY/CH_SUCCESS",
+    "source": 7,
+    "source_code": "serverloop.c(server_input_channel_req(), session.c(session_new()))",
+    "target": 8,
+    "type": "conn"
+  },
+  {
+    "l_label": "CH_CLOSE/CH_CLOSE",
+    "source": 7,
+    "source_code": " session.c(session_by_channel(int id), session_close(Session *s))",
+    "target": 6,
+    "type": "conn"
+  }
+],
+  "nodes": [
+    {
+      "name": "s0"
+    },
+    {
+      "name": "s1"
+    },
+    {
+      "name": "s4(2)"
+    },
+    {
+      "name": "s5(3)"
+    },
+    {
+      "name": "s6(4)"
+    },
+    {
+      "name": "s8(5)"
+    },
+    {
+      "name": "s9(6)"
+    },
+    {
+      "name": "s12(7)"
+    },
+    {
+      "name": "s16(8)"
+    }
+  ]
+}

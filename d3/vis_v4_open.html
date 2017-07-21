@@ -1,0 +1,377 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <!--<meta http-equiv="refresh" content="15"/>-->
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <title>Master thesis project</title>
+</head>
+
+<style>
+    .link {
+        stroke: #ccc;
+        fill: none;
+        stroke-width: 1.2px;
+        /*stroke-width: 10px;*/
+    }
+    .nodes circle {
+        stroke: #fff;
+        stroke-width: 1.5px;
+    }
+
+    #transport {
+        fill: green;
+    }
+    #none {
+        fill: grey;
+    }
+
+    .link.transport {
+        stroke:green;
+
+    }
+
+    .link.none {
+        stroke-dasharray: 0,2 1;
+
+    }
+
+    #header {
+        color: #333333;
+        font-family: 'Bitter', serif;
+        font-size: 20px;
+        font-weight: normal;
+        line-height: 54px;
+        margin: 0px;
+    }
+    #sourcecode{
+        color: #333333;
+        font-family: Georgia, serif;
+        font-size: 20px;
+        line-height: 28px;
+        margin-right: 20px;
+        margin-left: 15px;
+        height:400px;
+        width:400px;
+        float:left;
+        border-width:3px;
+        border-style:double;
+        border-color:#C4C4C4;
+        padding:0px;
+
+    }
+    #info{
+        color: #8d8d8d;
+        font-size: 15px;
+        line-height: 36px;
+        margin: 0 0 28px;
+    }
+
+    /*#chart{*/
+        /*border-width:2px;*/
+        /*border-style:dotted;*/
+        /*border-color:#E3E3E3;*/
+        /*padding:0px;*/
+    /*}*/
+
+
+
+</style>
+
+<body>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+
+
+
+
+<div id="chart" style="float:left;">
+
+</div>
+
+
+
+
+
+
+<script>
+    //[ { "name": "桂林" }, { "name": "广州" },{ "name": "桂林ee" }]
+    var width = 1200;
+    var height = 800;
+
+    //    var svg = d3.select("#svg")
+    //        .append("svg")
+    //        .attr("width", width)
+    //        .attr("height", height );
+
+
+
+
+
+
+
+
+    var svg = d3.select("#chart")
+        .append("svg:svg")
+        .attr("width", width)
+        .attr("height", height)
+        .attr("pointer-events", "all")
+        .append('svg:g')
+        .call(d3.behavior.zoom().on("zoom", redraw))
+        .append('svg:g');
+
+
+
+    svg.append('svg:rect')
+        .attr('width', width)
+        .attr('height', height)
+        .attr('fill', 'white');
+
+
+
+    function redraw() {
+        console.log("ssss4");
+        console.log("here", d3.event.translate, d3.event.scale);
+        svg.attr("transform",
+            "translate(" + d3.event.translate + ")"
+            + " scale(" + d3.event.scale + ")");
+    }
+
+
+
+
+    d3.json("final_result.json", function(error, dataset){
+
+        //any links with duplicate source and target get an incremented 'linknum'
+        for (var i=0; i<dataset.edges.length; i++) {
+            if (i != 0 &&
+                dataset.edges[i].source == dataset.edges[i-1].source &&
+                dataset.edges[i].target == dataset.edges[i-1].target) {
+                dataset.edges[i].linknum = dataset.edges[i-1].linknum + 1;
+            }
+            else {dataset.edges[i].linknum = 1;};
+        };
+
+        var force = d3.layout.force()
+            .nodes(dataset.nodes) //指定节点数组
+            .links(dataset.edges)
+            .size([width,height]) //指定作用域范围
+            .linkDistance([300])
+            .charge([-150]); //相互之间的作用力,显示在图像上则为点与点之间的距离
+
+        force.start();//现在确实有node，但是还没确定node用圈圈来表示
+        console.log(dataset.nodes);
+
+        var color = d3.scale.category10();
+
+
+
+        svg.append('defs').selectAll('marker')
+            .data(["none","transport"])
+            //                .attr({'id':'arrowhead'})
+            .enter().append("marker")
+            .attr("id", function(d) { return d; })
+            .attr({
+                'viewBox':'-0 -5 10 10',
+                'refX':25,
+                'refY':0,
+                //'markerUnits':'strokeWidth',
+                'orient':'auto',
+                'markerWidth':10,
+                'markerHeight':10,
+                'xoverflow':'visible'})
+            .append('svg:path')
+            .attr('d', 'M 0,-5 L 10 ,0 L 0,5');
+
+
+        var svg_edges = svg.selectAll("link")
+            .data(dataset.edges)
+            .enter()
+            .append("path")
+            .attr("class", function(d) { return "link "+ d.type; })
+            .attr("marker-end", function(d) { return "url(#" + d.type + ")"; });
+
+
+        var drag = force.drag()
+            .on("dragstart", dragstart);
+
+        var svg_nodes = svg.selectAll("circle")
+            .data(dataset.nodes)
+            .enter()
+            .append("circle")
+            .attr("r", 15)
+            .attr("fill",function(d,i){
+                return color(i);
+            })
+            .call(drag);
+
+
+
+        var label = svg.selectAll(".mytext")
+            .data(dataset.nodes)
+            .enter()
+            .append("text")
+            .text(function (d) { return d.name; })
+            .style("text-anchor", "middle")
+            .style("fill", "#555")
+            .style("font-family", "Arial")
+            .style("font-size", 12);
+
+
+        var edgepaths = svg.selectAll(".edgepath")
+            .data(dataset.edges)
+            .enter()
+            .append('path')
+            .attr({
+
+                'class':'edgepath',
+                'fill-opacity':0,
+                'stroke-opacity':0,
+                'fill':'blue',
+                'stroke':'red',
+                'id':function(d,i) {return 'edgepath'+i}})
+            .style("pointer-events", "none");
+
+
+        var edgelabels = svg.selectAll(".edgelabel")
+            .data(dataset.edges)
+            .enter()
+            .append('text')
+            //                .style("pointer-events", "none")
+            .attr({'class':'edgelabel',
+                'id':function(d,i){return 'edgelabel'+i},
+                'dx':80,
+                'dy':0,
+                'font-size':10,
+                'fill':'#aaa'});
+
+
+        edgelabels.append('textPath')
+            .attr('xlink:href',function(d,i) {return '#edgepath'+i})
+            //                .style("pointer-events", "none")
+            // .text(function(d,i){return 'label '+i});
+            .text(function(d,i){return d.l_label})
+            .on("click", function(d) {
+//                    alert(d.l_label);
+                d3.select("#info").text(d.l_label);
+            });
+
+        function dragstart(d) {
+            d3.event.sourceEvent.stopPropagation();
+            d3.select(this).classed("fixed", d.fixed = true);
+        }
+
+//        svg.style("opacity", 1e-6)
+//            .transition()
+//            .duration(1000)
+//            .style("opacity", 1);
+
+        force.on("tick", function(){
+            svg_nodes.attr("cx",function(d){return d.x;})
+                .attr("cy", function(d){return d.y;});
+            svg_edges
+                .attr("d", function(d) {
+                    var x1 = d.source.x,
+                        y1 = d.source.y,
+                        x2 = d.target.x,
+                        y2 = d.target.y,
+                        dx = x2 - x1,
+                        dy = y2 - y1,
+                        dr = Math.sqrt(dx * dx + dy * dy),
+
+
+                        drx = dr/d.linknum,
+                        dry = dr/d.linknum,
+                        xRotation = 0,
+                        largeArc = 0,
+                        sweep = 1;
+
+
+                    if ( x1 === x2 && y1 === y2 ) {
+
+//                        xRotation = -90*d.linknum;
+
+                        largeArc = 1;
+
+
+                        drx = 50/d.linknum;
+                        dry = 50/d.linknum;
+
+                        x2 = x2 + 1;
+                        y2 = y2 + 1;
+                    }
+
+                    return "M" + x1 + "," + y1 + "A" + drx + "," + dry + " " + xRotation + "," + largeArc + "," + sweep + " " + x2 + "," + y2;
+                });
+//                .on ("dblclick",function(d){ alert("node was double clicked"); });
+            label.attr("x", function(d){ return d.x; })
+                .attr("y", function (d) {return d.y; });
+
+
+            edgepaths
+                .attr('d', function(d) {
+                    var x1 = d.source.x,
+                        y1 = d.source.y,
+                        x2 = d.target.x,
+                        y2 = d.target.y,
+                        dx = x2 - x1,
+                        dy = y2 - y1,
+                        dr = Math.sqrt(dx * dx + dy * dy),
+
+
+                        drx = dr/d.linknum,
+                        dry = dr/d.linknum,
+                        xRotation = 0,
+                        largeArc = 0,
+                        sweep = 1;
+
+
+
+                    if ( x1 === x2 && y1 === y2 ) {
+//                        xRotation = -90*d.linknum;
+
+                        largeArc = 1;
+
+
+                        drx = 50/d.linknum;
+                        dry = 50/d.linknum;
+
+                        x2 = x2+1;
+                        y2 = y2+1;
+                        return "M" + x1+ "," + y1 + "A" + drx + "," + dry + " " + xRotation + "," + largeArc + "," + sweep + " " + x2 + "," + y2;
+
+
+                    }else{
+                        var path='M '+x1+' '+y1+' L '+ x2 +' '+y2;
+                        return path
+                    }
+                });
+
+
+            edgelabels.attr('transform',function(d,i){
+                if (d.target.x<d.source.x){
+                    bbox = this.getBBox();
+                    rx = bbox.x+bbox.width/2;
+                    ry = bbox.y+bbox.height/2;
+                    return 'rotate(180 '+rx+' '+ry+')';
+                }
+                else if(d.source.x === d.target.x && d.source.y===d.target.y){
+                    bbox = this.getBBox();
+                    rx = bbox.x+bbox.width/2+50;
+                    ry = bbox.y+bbox.height/2;
+                    return 'rotate(270 '+rx+' '+ry+')';
+                }
+                else {
+                    return 'rotate(0)';
+                }
+            });
+
+
+
+        });
+
+    });
+
+
+</script>
+</body>
+</html>
